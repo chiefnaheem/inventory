@@ -82,7 +82,7 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const product = await prisma.product.findUnique({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             include: { store: true }
         });
         if (!product) return res.status(404).json({ error: 'Product not found' });
@@ -108,7 +108,7 @@ router.post('/', validate(CreateProductSchema), async (req, res, next) => {
 router.put('/:id', validate(UpdateProductSchema), async (req, res, next) => {
     try {
         const product = await prisma.product.update({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             data: req.body
         });
         res.json(product);
