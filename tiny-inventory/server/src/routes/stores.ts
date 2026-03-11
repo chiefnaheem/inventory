@@ -21,7 +21,7 @@ router.get('/:id', async (req, res, next) => {
         const { id } = req.params;
 
         const store = await prisma.store.findUnique({
-            where: { id },
+            where: { id: id as string },
             include: {
                 products: {
                     orderBy: { createdAt: 'desc' }

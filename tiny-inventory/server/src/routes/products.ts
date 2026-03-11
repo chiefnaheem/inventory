@@ -121,7 +121,7 @@ router.put('/:id', validate(UpdateProductSchema), async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         await prisma.product.delete({
-            where: { id: req.params.id }
+            where: { id: req.params.id as string }
         });
         res.status(204).send();
     } catch (err) {
