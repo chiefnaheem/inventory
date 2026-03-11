@@ -10,14 +10,16 @@ export const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+import storeRoutes from './routes/stores';
+import productRoutes from './routes/products';
+
 // Main health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-// Import and register routes later
-// app.use('/api/stores', storeRoutes);
-// app.use('/api/products', productRoutes);
+app.use('/api/stores', storeRoutes);
+app.use('/api/products', productRoutes);
 
 // Global Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
