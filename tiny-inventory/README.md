@@ -51,11 +51,11 @@ DELETE /api/products/:id
    - **Backend**: `Express` + `TypeScript` + `Prisma`. Picked for rapid, highly-typed setup without the boilerplate overhead of heavier frameoworks (like NestJS) for a project of this scope.
    - **Frontend**: `React` + `Vite` + `TanStack Query`. Vite provides blistering fast HMR, and TanStack Query elegantly handles caching, background updates, and loading/error states out of the box.
 2. **Database Choice**: 
-   - **SQLite** was chosen to guarantee a completely frictionless, 1-click startup experience (via `docker compose`). It requires no separate daemon, simplifying the container footprint while still supporting fully relational data and Prisma's powerful querying.
+   - **PostgreSQL** was chosen to guarantee a robust, production-ready persistent store. It integrates purely with Prisma and its relations. The orchestration runs a lightweight `postgres:15-alpine` container within `docker-compose.yml` to automatically handle DB lifecycles without local dependencies.
 3. **Styling Approach**: 
    - **Vanilla CSS** with a custom Design System built on CSS variables. This avoids generic framework looks and allows creating a highly tailored "premium" aesthetic that fits the exact prompt requirements (avoiding Tailwind defaults).
 4. **Data Aggregation**:
-   - The non-trivial operation (`inventoryValue`) is computed on the fly natively within the API when fetching a single store. Given SQLite's limitations with complex subquery computations via Prisma, a memory-reduce was used over the relation fetched; in a Postgres setup, this would be pushed down to the DB engine via `_sum`.
+   - The non-trivial operation (`inventoryValue`) is computed on the fly. In this deployment, it's aggregated dynamically on the Express layer to reduce multi-level payload queries, but could easily be pushed natively down to PostgreSQL using Prisma's aggregations (`_sum`).
 
 ---
 
