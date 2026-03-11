@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./server
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=file:./dev.db
+    # To keep db persistent we could mount a volume but given it's a demo, memory/container ephemeral is usually fine
+    volumes:
+      - server_data:/app/prisma
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
+volumes:
+  server_data:
