@@ -21,11 +21,10 @@ app.get('/health', (req, res) => {
 app.use('/api/stores', storeRoutes);
 app.use('/api/products', productRoutes);
 
+import { errorHandler } from './middleware/errorHandler';
+
 // Global Error Handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong', message: err.message });
-});
+app.use(errorHandler);
 
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { prisma } from '../index';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
+import * as productController from '../controllers/product.controller';
 
 const router = Router();
 
@@ -30,103 +30,18 @@ const UpdateProductSchema = z.object({
 });
 
 // GET /api/products - Lists products with filtering and pagination
-router.get('/', async (req, res, next) => {
-    try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
-        const search = req.query.search as string;
-        const storeId = req.query.storeId as string;
-
-        const skip = (page - 1) * limit;
-
-        // Build the query dynamically
-        const where: any = {};
-
-        if (search) {
-            where.name = { contains: search };
-            // SQLite prisma doesn't support insensitive easily without raw queries or specific setup,
-            // but 'contains' in newer Prisma SQLite defaults to case-insensitive depending on collation.
-            // Easiest is to stick to contains.
-        }
-
-        if (storeId) {
-            where.storeId = storeId;
-        }
-
-        const [products, total] = await Promise.all([
-            prisma.product.findMany({
-                where,
-                skip,
-                take: limit,
-                include: { store: { select: { name: true } } },
-                orderBy: { createdAt: 'desc' },
-            }),
-            prisma.product.count({ where })
-        ]);
-
-        res.json({
-            data: products,
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
-            }
-        });
-    } catch (err) {
-        next(err);
-    }
-});
+router.get('/', productController.getProducts);
 
 // GET /api/products/:id
-router.get('/:id', async (req, res, next) => {
-    try {
-        const product = await prisma.product.findUnique({
-            where: { id: req.params.id as string },
-            include: { store: true }
-        });
-        if (!product) return res.status(404).json({ error: 'Product not found' });
-        res.json(product);
-    } catch (err) {
-        next(err);
-    }
-});
+router.get('/:id', productController.getProductById);
 
 // POST /api/products
-router.post('/', validate(CreateProductSchema), async (req, res, next) => {
-    try {
-        const product = await prisma.product.create({
-            data: req.body
-        });
-        res.status(201).json(product);
-    } catch (err) {
-        next(err);
-    }
-});
+router.post('/', validate(CreateProductSchema), productController.createProduct);
 
 // PUT /api/products/:id
-router.put('/:id', validate(UpdateProductSchema), async (req, res, next) => {
-    try {
-        const product = await prisma.product.update({
-            where: { id: req.params.id as string },
-            data: req.body
-        });
-        res.json(product);
-    } catch (err) {
-        next(err);
-    }
-});
+router.put('/:id', validate(UpdateProductSchema), productController.updateProduct);
 
 // DELETE /api/products/:id
-router.delete('/:id', async (req, res, next) => {
-    try {
-        await prisma.product.delete({
-            where: { id: req.params.id as string }
-        });
-        res.status(204).send();
-    } catch (err) {
-        next(err);
-    }
-});
+router.delete('/:id', productController.deleteProduct);
 
 export default router;
