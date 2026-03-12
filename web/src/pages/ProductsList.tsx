@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useProducts } from '../hooks/useQueries';
-import { Filter, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { useProducts, useStores } from '../hooks/useQueries';
+import { Filter, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Loader, ErrorState } from '../components/ui/States';
 import { ProductTable } from '../components/features/ProductTable';
+import { ProductModal } from '../components/features/ProductModal';
+import type { Product } from '../types';
 
 export default function ProductsList() {
     const [page, setPage] = useState(1);
@@ -10,9 +12,30 @@ export default function ProductsList() {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+    const { data: stores } = useStores();
+
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
         setTimeout(() => setDebouncedSearch(e.target.value), 300);
+    };
+
+    const clearSearch = () => {
+        setSearch('');
+        setDebouncedSearch('');
+        setPage(1);
+    };
+
+    const openAddModal = () => {
+        setEditingProduct(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (product: Product) => {
+        setEditingProduct(product);
+        setIsModalOpen(true);
     };
 
     const { data, isLoading, error } = useProducts({ page, limit, search: debouncedSearch });
@@ -21,20 +44,29 @@ export default function ProductsList() {
         <div>
             <div className="flex items-center justify-between mb-4">
                 <h1>All Products</h1>
+                <button className="btn btn-primary" onClick={openAddModal}>Add Product</button>
             </div>
 
             <div className="card mb-4">
                 <div className="flex items-center gap-4">
-                    <div style={{ flex: 1, position: 'relative' }}>
-                        <Search size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                    <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <Search size={16} style={{ position: 'absolute', left: '1rem', color: 'var(--text-secondary)' }} />
                         <input
                             type="text"
                             className="input"
                             placeholder="Search products by name..."
-                            style={{ paddingLeft: '2.5rem' }}
+                            style={{ paddingLeft: '2.5rem', paddingRight: search ? '2.5rem' : '1rem', width: '100%' }}
                             value={search}
                             onChange={handleSearchChange}
                         />
+                        {search && (
+                            <button
+                                onClick={clearSearch}
+                                style={{ position: 'absolute', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex' }}
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                     <button className="btn btn-secondary">
                         <Filter size={16} /> Filters
@@ -48,7 +80,10 @@ export default function ProductsList() {
                 <ErrorState message="Failed to load products." />
             ) : (
                 <>
-                    <ProductTable products={data?.data || []} />
+                    <ProductTable
+                        products={data?.data || []}
+                        onEdit={openEditModal}
+                    />
 
                     <div className="flex items-center justify-between" style={{ padding: '1rem' }}>
                         <span className="text-sm text-muted">
@@ -73,6 +108,13 @@ export default function ProductsList() {
                     </div>
                 </>
             )}
+
+            <ProductModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                product={editingProduct}
+                stores={stores || []}
+            />
         </div>
     );
 }
