@@ -5,12 +5,14 @@ interface ProductTableProps {
     products: Product[];
     emptyMessage?: string;
     hideStoreColumn?: boolean;
+    onEdit?: (product: Product) => void;
 }
 
 export const ProductTable: React.FC<ProductTableProps> = ({
     products,
     emptyMessage = 'No products found.',
-    hideStoreColumn = false
+    hideStoreColumn = false,
+    onEdit
 }) => {
     return (
         <div className="table-container">
@@ -49,7 +51,12 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                                 </td>
                                 {!hideStoreColumn && <td className="text-muted">{product.store?.name}</td>}
                                 <td>
-                                    <button className="btn btn-secondary text-sm">Edit</button>
+                                    <button
+                                        className="btn btn-secondary text-sm"
+                                        onClick={() => onEdit?.(product)}
+                                    >
+                                        Edit
+                                    </button>
                                 </td>
                             </tr>
                         ))

@@ -1,13 +1,28 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStoreDetails } from '../hooks/useQueries';
 import { ArrowLeft } from 'lucide-react';
 import { Loader, ErrorState } from '../components/ui/States';
 import { ProductTable } from '../components/features/ProductTable';
+import { ProductModal } from '../components/features/ProductModal';
 import type { Product } from '../types';
 
 export default function StoreDetails() {
     const { id } = useParams<{ id: string }>();
     const { data: store, isLoading, error } = useStoreDetails(id);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+    const openAddModal = () => {
+        setEditingProduct(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (product: Product) => {
+        setEditingProduct(product);
+        setIsModalOpen(true);
+    };
 
     if (isLoading) return <Loader />;
 
@@ -43,13 +58,22 @@ export default function StoreDetails() {
 
             <div className="flex items-center justify-between mb-4 mt-4" style={{ marginTop: '2rem' }}>
                 <h2>Inventory</h2>
-                <button className="btn btn-primary">Add Product</button>
+                <button className="btn btn-primary" onClick={openAddModal}>Add Product</button>
             </div>
 
             <ProductTable
                 products={(store.products as Product[]) || []}
                 emptyMessage="No products in this store."
                 hideStoreColumn={true}
+                onEdit={openEditModal}
+            />
+
+            <ProductModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                product={editingProduct}
+                defaultStoreId={store.id}
+                stores={[store as any]}
             />
         </div>
     );

@@ -9,7 +9,9 @@ export class ProductService {
         const skip = (page - 1) * limit;
 
         const where: any = {};
-        if (search) where.name = { contains: search };
+        if (search) {
+            where.name = { contains: search, mode: 'insensitive' };
+        }
         if (storeId) where.storeId = storeId;
 
         const [products, total] = await Promise.all([

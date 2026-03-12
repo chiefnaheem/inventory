@@ -7,8 +7,15 @@ Tiny Inventory is a premium, robust, and highly-optimized full-stack inventory m
 The entire system is containerized for a zero-configuration launch.
 
 ```bash
-# Ensure Docker is running, then execute:
+# Option A: Zero-config Docker
 docker compose up --build
+
+# Option B: Run locally across both folders concurrently (requires Node.js)
+npm run install:all
+npm run dev
+
+# (To build for production locally)
+npm run build
 ```
 
 - **Frontend (Web)**: Available at [http://localhost:3000](http://localhost:3000)
