@@ -1,50 +1,32 @@
+import type { Store, Product, PaginatedResponse, ProductQueryParams } from '../types';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-export const api = {
-    getStores: async () => {
-        const res = await fetch(`${API_URL}/stores`);
-        if (!res.ok) throw new Error('Failed to fetch stores');
-        return res.json();
-    },
-
-    getStoreDetails: async (id: string) => {
-        const res = await fetch(`${API_URL}/stores/${id}`);
-        if (!res.ok) throw new Error('Failed to fetch store details');
-        return res.json();
-    },
-
-    getProducts: async (params?: Record<string, any>) => {
-        const query = new URLSearchParams(params as any).toString();
-        const res = await fetch(`${API_URL}/products?${query}`);
-        if (!res.ok) throw new Error('Failed to fetch products');
-        return res.json();
-    },
-
-    createProduct: async (data: any) => {
-        const res = await fetch(`${API_URL}/products`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error('Failed to create product');
-        return res.json();
-    },
-
-    updateProduct: async (id: string, data: any) => {
-        const res = await fetch(`${API_URL}/products/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error('Failed to update product');
-        return res.json();
-    },
-
-    deleteProduct: async (id: string) => {
-        const res = await fetch(`${API_URL}/products/${id}`, {
-            method: 'DELETE',
-        });
-        if (!res.ok) throw new Error('Failed to delete product');
-        return res.json();
+async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers,
+        },
+    });
+    if (!res.ok) {
+        throw new Error(`API Error: ${res.statusText}`);
     }
+    return res.json();
+}
+
+export const api = {
+    getStores: () => fetchApi<Store[]>('/stores'),
+    getStoreDetails: (id: string) => fetchApi<Store>(`/stores/${id}`),
+    getProducts: (params?: ProductQueryParams) => {
+        const query = new URLSearchParams(params as any).toString();
+        return fetchApi<PaginatedResponse<Product>>(`/products?${query}`);
+    },
+    createProduct: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) =>
+        fetchApi<Product>('/products', { method: 'POST', body: JSON.stringify(data) }),
+    updateProduct: (id: string, data: Partial<Product>) =>
+        fetchApi<Product>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteProduct: (id: string) =>
+        fetchApi<void>(`/products/${id}`, { method: 'DELETE' })
 };
