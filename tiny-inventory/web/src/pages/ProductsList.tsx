@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { useProducts } from '../hooks/useQueries';
 import { Filter, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Loader, ErrorState } from '../components/ui/States';
+import { ProductTable } from '../components/features/ProductTable';
 
 export default function ProductsList() {
     const [page, setPage] = useState(1);
@@ -9,20 +10,12 @@ export default function ProductsList() {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
-    // Debounce search input
-    // In a real app we'd use useDebounce hook, but doing it simple here
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
-        // Simple timeout for demo
         setTimeout(() => setDebouncedSearch(e.target.value), 300);
     };
 
-    const { data, isLoading, error } = useQuery({
-        queryKey: ['products', { page, limit, search: debouncedSearch }],
-        queryFn: () => api.getProducts({ page, limit, search: debouncedSearch }),
-        // Keep previous data while fetching new page for smooth UX
-        placeholderData: (prev) => prev,
-    });
+    const { data, isLoading, error } = useProducts({ page, limit, search: debouncedSearch });
 
     return (
         <div>
@@ -50,58 +43,12 @@ export default function ProductsList() {
             </div>
 
             {isLoading && !data ? (
-                <div className="empty-state">
-                    <div className="loader mb-4"></div>
-                    <p>Loading products...</p>
-                </div>
+                <Loader text="Loading products..." />
             ) : error ? (
-                <div className="empty-state">
-                    <p style={{ color: 'var(--danger-color)' }}>Failed to load products.</p>
-                </div>
+                <ErrorState message="Failed to load products." />
             ) : (
-                <div className="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Store</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data?.data?.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }} className="text-muted">
-                                        No products found.
-                                    </td>
-                                </tr>
-                            ) : (
-                                data?.data?.map((product: any) => (
-                                    <tr key={product.id}>
-                                        <td style={{ fontWeight: 500 }}>{product.name}</td>
-                                        <td>
-                                            <span style={{ padding: '0.25rem 0.5rem', backgroundColor: 'var(--bg-tertiary)', borderRadius: '1rem', fontSize: '0.75rem' }}>
-                                                {product.category}
-                                            </span>
-                                        </td>
-                                        <td>${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td>
-                                            <span style={{ color: product.quantity < 10 ? 'var(--danger-color)' : 'inherit' }}>
-                                                {product.quantity}
-                                            </span>
-                                        </td>
-                                        <td className="text-muted">{product.store?.name}</td>
-                                        <td>
-                                            <button className="btn btn-secondary text-sm">Edit</button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                <>
+                    <ProductTable products={data?.data || []} />
 
                     <div className="flex items-center justify-between" style={{ padding: '1rem' }}>
                         <span className="text-sm text-muted">
@@ -124,7 +71,7 @@ export default function ProductsList() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </>
             )}
         </div>
     );
