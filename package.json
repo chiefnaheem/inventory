@@ -6,6 +6,9 @@
         "dev": "npx concurrently \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
         "install:all": "npm install --prefix server && npm install --prefix web",
         "build": "npm run build --prefix server && npm run build --prefix web",
-        "start": "npx concurrently \"npm run start --prefix server\" \"npm run preview --prefix web\""
+        "start": "npx concurrently \"npm run start --prefix server\" \"npm run preview --prefix web\"",
+        "test": "npm run test:server && npm run test:web",
+        "test:server": "npm test --prefix server",
+        "test:web": "npm test --prefix web"
     }
 }
