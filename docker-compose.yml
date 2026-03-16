@@ -9,10 +9,10 @@ services:
     restart: on-failure
     environment:
       - PORT=8080
-    env_file:
-      - ./server/.env
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/tiny_inventory
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   web:
     build:
@@ -33,6 +33,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
