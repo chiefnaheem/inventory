@@ -6,6 +6,18 @@ import { ProductTable } from '../components/features/ProductTable';
 import { ProductModal } from '../components/features/ProductModal';
 import type { Product } from '../types';
 
+function getPageNumbers(current: number, total: number): (number | '...')[] {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | '...')[] = [1];
+    if (current > 3) pages.push('...');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+        pages.push(i);
+    }
+    if (current < total - 2) pages.push('...');
+    pages.push(total);
+    return pages;
+}
+
 export default function ProductsList() {
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
@@ -87,7 +99,7 @@ export default function ProductsList() {
 
                     <div className="flex items-center justify-between" style={{ padding: '1rem' }}>
                         <span className="text-sm text-muted">
-                            Showing {data?.data?.length || 0} of {data?.meta?.total || 0} results
+                            Showing {((page - 1) * limit) + 1}–{Math.min(page * limit, data?.meta?.total || 0)} of {data?.meta?.total || 0} results
                         </span>
                         <div className="flex items-center gap-2">
                             <button
@@ -97,6 +109,19 @@ export default function ProductsList() {
                             >
                                 <ChevronLeft size={16} /> Prev
                             </button>
+                            {getPageNumbers(page, data?.meta?.totalPages || 1).map((p, i) => (
+                                p === '...' ? (
+                                    <span key={`ellipsis-${i}`} className="text-sm text-muted" style={{ padding: '0 0.25rem' }}>...</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        className={`btn text-sm ${p === page ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setPage(p)}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            ))}
                             <button
                                 className="btn btn-secondary text-sm"
                                 disabled={page >= (data?.meta?.totalPages || 1)}
