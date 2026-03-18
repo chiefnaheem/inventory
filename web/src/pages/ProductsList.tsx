@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useProducts, useStores } from '../hooks/useQueries';
 import { Filter, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Loader, ErrorState } from '../components/ui/States';
@@ -28,16 +28,24 @@ export default function ProductsList() {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     const { data: stores } = useStores();
+    const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value);
-        setTimeout(() => setDebouncedSearch(e.target.value), 300);
+        const value = e.target.value;
+        setSearch(value);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setDebouncedSearch(value), 300);
     };
 
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
     const clearSearch = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
         setSearch('');
         setDebouncedSearch('');
-        setPage(1);
     };
 
     const openAddModal = () => {
