@@ -1,18 +1,29 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStoreDetails } from '../hooks/useQueries';
 import { ArrowLeft } from 'lucide-react';
 import { Loader, ErrorState } from '../components/ui/States';
 import { ProductTable } from '../components/features/ProductTable';
 import { ProductModal } from '../components/features/ProductModal';
-import type { Product } from '../types';
+import { api } from '../lib/api';
+import type { Product, Store } from '../types';
 
 export default function StoreDetails() {
     const { id } = useParams<{ id: string }>();
     const { data: store, isLoading, error } = useStoreDetails(id);
+    const queryClient = useQueryClient();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+    const deleteMutation = useMutation({
+        mutationFn: (productId: string) => api.deleteProduct(productId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['store', id] });
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+        }
+    });
 
     const openAddModal = () => {
         setEditingProduct(null);
@@ -66,6 +77,7 @@ export default function StoreDetails() {
                 emptyMessage="No products in this store."
                 hideStoreColumn={true}
                 onEdit={openEditModal}
+                onDelete={(product) => deleteMutation.mutate(product.id)}
             />
 
             <ProductModal
@@ -73,7 +85,7 @@ export default function StoreDetails() {
                 onClose={() => setIsModalOpen(false)}
                 product={editingProduct}
                 defaultStoreId={store.id}
-                stores={[store as any]}
+                stores={[store as Store]}
             />
         </div>
     );

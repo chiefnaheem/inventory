@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import type { Product } from '../../types';
 
 interface ProductTableProps {
@@ -6,14 +7,27 @@ interface ProductTableProps {
     emptyMessage?: string;
     hideStoreColumn?: boolean;
     onEdit?: (product: Product) => void;
+    onDelete?: (product: Product) => void;
 }
 
 export const ProductTable: React.FC<ProductTableProps> = ({
     products,
     emptyMessage = 'No products found.',
     hideStoreColumn = false,
-    onEdit
+    onEdit,
+    onDelete
 }) => {
+    const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+    const handleDelete = (product: Product) => {
+        if (confirmingId === product.id) {
+            onDelete?.(product);
+            setConfirmingId(null);
+        } else {
+            setConfirmingId(product.id);
+        }
+    };
+
     return (
         <div className="table-container">
             <table>
@@ -51,12 +65,27 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                                 </td>
                                 {!hideStoreColumn && <td className="text-muted">{product.store?.name}</td>}
                                 <td>
-                                    <button
-                                        className="btn btn-secondary text-sm"
-                                        onClick={() => onEdit?.(product)}
-                                    >
-                                        Edit
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            className="btn btn-secondary text-sm"
+                                            onClick={() => onEdit?.(product)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="btn text-sm"
+                                            style={{
+                                                backgroundColor: confirmingId === product.id ? 'var(--danger-color)' : 'transparent',
+                                                color: confirmingId === product.id ? '#fff' : 'var(--danger-color)',
+                                                border: '1px solid var(--danger-color)',
+                                            }}
+                                            onClick={() => handleDelete(product)}
+                                            onBlur={() => setConfirmingId(null)}
+                                        >
+                                            <Trash2 size={14} />
+                                            {confirmingId === product.id ? 'Confirm' : 'Delete'}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))

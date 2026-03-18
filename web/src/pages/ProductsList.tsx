@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useProducts, useStores } from '../hooks/useQueries';
-import { Filter, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, Filter } from 'lucide-react';
 import { Loader, ErrorState } from '../components/ui/States';
 import { ProductTable } from '../components/features/ProductTable';
 import { ProductModal } from '../components/features/ProductModal';
+import { api } from '../lib/api';
 import type { Product } from '../types';
 
 function getPageNumbers(current: number, total: number): (number | '...')[] {
@@ -23,12 +25,23 @@ export default function ProductsList() {
     const [limit] = useState(10);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [selectedStoreId, setSelectedStoreId] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+    const queryClient = useQueryClient();
     const { data: stores } = useStores();
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => api.deleteProduct(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['store'] });
+        }
+    });
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -58,7 +71,7 @@ export default function ProductsList() {
         setIsModalOpen(true);
     };
 
-    const { data, isLoading, error } = useProducts({ page, limit, search: debouncedSearch });
+    const { data, isLoading, error } = useProducts({ page, limit, search: debouncedSearch, storeId: selectedStoreId || undefined });
 
     return (
         <div>
@@ -88,10 +101,34 @@ export default function ProductsList() {
                             </button>
                         )}
                     </div>
-                    <button className="btn btn-secondary">
+                    <button className="btn btn-secondary" onClick={() => setShowFilters(!showFilters)}>
                         <Filter size={16} /> Filters
                     </button>
                 </div>
+                {showFilters && (
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <label className="text-sm text-muted">Store:</label>
+                        <select
+                            className="input"
+                            style={{ width: 'auto', minWidth: '200px' }}
+                            value={selectedStoreId}
+                            onChange={(e) => { setSelectedStoreId(e.target.value); setPage(1); }}
+                        >
+                            <option value="">All Stores</option>
+                            {stores?.map(s => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                        </select>
+                        {selectedStoreId && (
+                            <button
+                                className="btn btn-secondary text-sm"
+                                onClick={() => { setSelectedStoreId(''); setPage(1); }}
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {isLoading && !data ? (
@@ -103,6 +140,7 @@ export default function ProductsList() {
                     <ProductTable
                         products={data?.data || []}
                         onEdit={openEditModal}
+                        onDelete={(product) => deleteMutation.mutate(product.id)}
                     />
 
                     <div className="flex items-center justify-between" style={{ padding: '1rem' }}>
