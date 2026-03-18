@@ -42,10 +42,12 @@ export class App {
             legacyHeaders: false,
             message: { status: 'error', message: 'Too many requests, please try again later.' },
         });
+
         this.app.use('/api', limiter)
         const allowedOrigins = process.env.ALLOWED_ORIGINS
             ? process.env.ALLOWED_ORIGINS.split(',')
             : ['http://localhost:3000'];
+            
         this.app.use(cors({
             origin: allowedOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE'],

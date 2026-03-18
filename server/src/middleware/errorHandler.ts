@@ -5,26 +5,20 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 
-    if (process.env.NODE_ENV === 'development') {
+    // Log the full error server-side for debugging (never sent to client)
+    console.error(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} — ${err.message}`);
+    if (err.stack) console.error(err.stack);
+
+    if (err.isOperational) {
         res.status(err.statusCode).json({
             status: err.status,
-            error: err,
             message: err.message,
-            stack: err.stack,
         });
     } else {
-        // Production: Don't leak error details
-        if (err.isOperational) {
-            res.status(err.statusCode).json({
-                status: err.status,
-                message: err.message,
-            });
-        } else {
-            console.error('ERROR 💥', err);
-            res.status(500).json({
-                status: 'error',
-                message: 'Something went very wrong!',
-            });
-        }
+        // Never expose internal error details to the client
+        res.status(500).json({
+            status: 'error',
+            message: 'An internal error occurred.',
+        });
     }
 };
