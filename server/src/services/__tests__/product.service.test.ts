@@ -8,6 +8,7 @@ const mockProductFindUnique = jest.fn();
 const mockProductCreate = jest.fn();
 const mockProductUpdate = jest.fn();
 const mockProductDelete = jest.fn();
+const mockStoreFindUnique = jest.fn();
 
 jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
@@ -18,6 +19,9 @@ jest.mock('@prisma/client', () => ({
       create: mockProductCreate,
       update: mockProductUpdate,
       delete: mockProductDelete,
+    },
+    store: {
+      findUnique: mockStoreFindUnique,
     },
   })),
 }));
@@ -131,15 +135,25 @@ describe('ProductService', () => {
   });
 
   describe('createProduct', () => {
-    it('should create and return product', async () => {
-      const mockData = { name: 'New Product', storeId: 'store1' };
+    it('should create and return product when store exists', async () => {
+      const mockData = { name: 'New Product', category: 'Electronics', price: 99.99, storeId: 'store1' };
       const mockProduct = { id: '1', ...mockData };
+      mockStoreFindUnique.mockResolvedValue({ id: 'store1', name: 'Store 1' });
       mockProductCreate.mockResolvedValue(mockProduct);
 
       const result = await productService.createProduct(mockData);
 
+      expect(mockStoreFindUnique).toHaveBeenCalledWith({ where: { id: 'store1' } });
       expect(mockProductCreate).toHaveBeenCalledWith({ data: mockData });
       expect(result).toBe(mockProduct);
+    });
+
+    it('should throw AppError if store not found', async () => {
+      const mockData = { name: 'New Product', category: 'Electronics', price: 99.99, storeId: 'invalid' };
+      mockStoreFindUnique.mockResolvedValue(null);
+
+      await expect(productService.createProduct(mockData)).rejects.toThrow(AppError);
+      await expect(productService.createProduct(mockData)).rejects.toThrow('Store not found');
     });
   });
 

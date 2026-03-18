@@ -57,7 +57,7 @@ export class ProductService {
         return this.prisma.product.create({ data });
     }
 
-    public async updateProduct(id: string, data: any) {
+    public async updateProduct(id: string, data: Prisma.ProductUncheckedUpdateInput) {
         const product = await this.prisma.product.findUnique({ where: { id } });
         if (!product) {
             throw new AppError('Product not found', 404);
