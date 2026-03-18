@@ -23,7 +23,15 @@ export const api = {
     getStores: () => fetchApi<Store[]>('/stores'),
     getStoreDetails: (id: string) => fetchApi<Store>(`/stores/${id}`),
     getProducts: (params?: ProductQueryParams) => {
-        const query = new URLSearchParams(params as any).toString();
+        const filtered: Record<string, string> = {};
+        if (params) {
+            for (const [key, value] of Object.entries(params)) {
+                if (value !== undefined && value !== '') {
+                    filtered[key] = String(value);
+                }
+            }
+        }
+        const query = new URLSearchParams(filtered).toString();
         return fetchApi<PaginatedResponse<Product>>(`/products?${query}`);
     },
     createProduct: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) =>

@@ -35,11 +35,16 @@ export default function ProductsList() {
     const { data: stores } = useStores();
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
+    const [deleteError, setDeleteError] = useState('');
     const deleteMutation = useMutation({
         mutationFn: (id: string) => api.deleteProduct(id),
         onSuccess: () => {
+            setDeleteError('');
             queryClient.invalidateQueries({ queryKey: ['products'] });
             queryClient.invalidateQueries({ queryKey: ['store'] });
+        },
+        onError: (err: Error) => {
+            setDeleteError(err.message || 'Failed to delete product.');
         }
     });
 
@@ -54,6 +59,11 @@ export default function ProductsList() {
     useEffect(() => {
         setPage(1);
     }, [debouncedSearch]);
+
+    // Cleanup debounce timeout on unmount
+    useEffect(() => {
+        return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    }, []);
 
     const clearSearch = () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -95,6 +105,7 @@ export default function ProductsList() {
                         {search && (
                             <button
                                 onClick={clearSearch}
+                                aria-label="Clear search"
                                 style={{ position: 'absolute', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex' }}
                             >
                                 <X size={16} />
@@ -131,6 +142,13 @@ export default function ProductsList() {
                 )}
             </div>
 
+            {deleteError && (
+                <div className="card mb-4" style={{ borderLeft: '3px solid var(--danger-color)', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="text-sm" style={{ color: 'var(--danger-color)' }}>{deleteError}</span>
+                    <button className="btn btn-secondary text-sm" onClick={() => setDeleteError('')}>Dismiss</button>
+                </div>
+            )}
+
             {isLoading && !data ? (
                 <Loader text="Loading products..." />
             ) : error ? (
@@ -143,7 +161,7 @@ export default function ProductsList() {
                         onDelete={(product) => deleteMutation.mutate(product.id)}
                     />
 
-                    <div className="flex items-center justify-between" style={{ padding: '1rem' }}>
+                    {(data?.meta?.total || 0) > 0 && <div className="flex items-center justify-between" style={{ padding: '1rem' }}>
                         <span className="text-sm text-muted">
                             Showing {((page - 1) * limit) + 1}–{Math.min(page * limit, data?.meta?.total || 0)} of {data?.meta?.total || 0} results
                         </span>
@@ -176,7 +194,7 @@ export default function ProductsList() {
                                 Next <ChevronRight size={16} />
                             </button>
                         </div>
-                    </div>
+                    </div>}
                 </>
             )}
 

@@ -56,11 +56,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
     if (!isOpen) return null;
 
     return (
-        <div style={overlayStyle}>
+        <div style={overlayStyle} role="dialog" aria-modal="true" aria-label={isEditing ? 'Edit Product' : 'Add Product'}>
             <div style={modalStyle} className="card">
                 <div className="flex items-center justify-between mb-4">
                     <h2>{isEditing ? 'Edit Product' : 'Add Product'}</h2>
-                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                    <button onClick={onClose} aria-label="Close modal" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                         <X size={20} />
                     </button>
                 </div>
@@ -73,26 +73,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                         quantity: Number(formData.quantity)
                     });
                 }}>
+                    <fieldset disabled={mutation.isPending} style={{ border: 'none', padding: 0, margin: 0 }}>
                     <div style={{ marginBottom: '1rem' }}>
                         <label className="text-sm text-muted">Name</label>
-                        <input required type="text" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                        <input required type="text" maxLength={200} className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                         <div style={{ flex: 1 }}>
                             <label className="text-sm text-muted">Category</label>
-                            <input required type="text" className="input" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
+                            <input required type="text" maxLength={100} className="input" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                         <div style={{ flex: 1 }}>
                             <label className="text-sm text-muted">Price ($)</label>
-                            <input required type="number" step="0.01" min="0" className="input" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} />
+                            <input required type="number" step="0.01" min="0.01" max="1000000" className="input" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} />
                         </div>
                         <div style={{ flex: 1 }}>
                             <label className="text-sm text-muted">Quantity</label>
-                            <input required type="number" min="0" step="1" className="input" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: e.target.value })} />
+                            <input required type="number" min="0" max="1000000" step="1" className="input" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: e.target.value })} />
                         </div>
                     </div>
 
@@ -105,6 +106,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, pro
                             ))}
                         </select>
                     </div>
+                    </fieldset>
 
                     <div className="flex justify-between items-center">
                         {mutation.isError && <span className="text-sm" style={{ color: 'var(--danger-color)' }}>Failed to save product.</span>}

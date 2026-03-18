@@ -17,11 +17,16 @@ export default function StoreDetails() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+    const [deleteError, setDeleteError] = useState('');
     const deleteMutation = useMutation({
         mutationFn: (productId: string) => api.deleteProduct(productId),
         onSuccess: () => {
+            setDeleteError('');
             queryClient.invalidateQueries({ queryKey: ['store', id] });
             queryClient.invalidateQueries({ queryKey: ['products'] });
+        },
+        onError: (err: Error) => {
+            setDeleteError(err.message || 'Failed to delete product.');
         }
     });
 
@@ -66,6 +71,13 @@ export default function StoreDetails() {
                     </p>
                 </div>
             </div>
+
+            {deleteError && (
+                <div className="card mb-4" style={{ borderLeft: '3px solid var(--danger-color)', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                    <span className="text-sm" style={{ color: 'var(--danger-color)' }}>{deleteError}</span>
+                    <button className="btn btn-secondary text-sm" onClick={() => setDeleteError('')}>Dismiss</button>
+                </div>
+            )}
 
             <div className="flex items-center justify-between mb-4 mt-4" style={{ marginTop: '2rem' }}>
                 <h2>Inventory</h2>
