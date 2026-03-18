@@ -9,10 +9,13 @@ async function main() {
         return;
     }
 
-    console.log('Seeding database...');
+    const existingStores = await prisma.store.count();
+    if (existingStores > 0) {
+        console.log('Database already has data, skipping seed.');
+        return;
+    }
 
-    await prisma.product.deleteMany();
-    await prisma.store.deleteMany();
+    console.log('Seeding empty database...');
 
     const store1 = await prisma.store.create({
         data: {
