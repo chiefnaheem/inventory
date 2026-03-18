@@ -21,8 +21,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# We will run migrations and seed on startup, so we need tsx and a script
 ENV PORT=8080
+
+# Run as non-root user for security
+USER node
 
 EXPOSE 8080
 
