@@ -158,32 +158,50 @@ describe('ProductService', () => {
   });
 
   describe('updateProduct', () => {
-    it('should update and return product', async () => {
+    it('should update and return product when product exists', async () => {
       const mockData = { name: 'Updated Product' };
       const mockProduct = { id: '1', name: 'Updated Product' };
+      mockProductFindUnique.mockResolvedValue({ id: '1' });
       mockProductUpdate.mockResolvedValue(mockProduct);
 
       const result = await productService.updateProduct('1', mockData);
 
+      expect(mockProductFindUnique).toHaveBeenCalledWith({ where: { id: '1' } });
       expect(mockProductUpdate).toHaveBeenCalledWith({
         where: { id: '1' },
         data: mockData,
       });
       expect(result).toBe(mockProduct);
     });
+
+    it('should throw AppError if product not found', async () => {
+      mockProductFindUnique.mockResolvedValue(null);
+
+      await expect(productService.updateProduct('1', { name: 'Test' })).rejects.toThrow(AppError);
+      await expect(productService.updateProduct('1', { name: 'Test' })).rejects.toThrow('Product not found');
+    });
   });
 
   describe('deleteProduct', () => {
-    it('should delete and return product', async () => {
+    it('should delete and return product when product exists', async () => {
       const mockProduct = { id: '1', name: 'Product 1' };
+      mockProductFindUnique.mockResolvedValue({ id: '1' });
       mockProductDelete.mockResolvedValue(mockProduct);
 
       const result = await productService.deleteProduct('1');
 
+      expect(mockProductFindUnique).toHaveBeenCalledWith({ where: { id: '1' } });
       expect(mockProductDelete).toHaveBeenCalledWith({
         where: { id: '1' },
       });
       expect(result).toBe(mockProduct);
+    });
+
+    it('should throw AppError if product not found', async () => {
+      mockProductFindUnique.mockResolvedValue(null);
+
+      await expect(productService.deleteProduct('1')).rejects.toThrow(AppError);
+      await expect(productService.deleteProduct('1')).rejects.toThrow('Product not found');
     });
   });
 });
