@@ -7,7 +7,7 @@ interface PaginationProps {
     onPageChange: (page: number) => void;
 }
 
-function getPageNumbers(current: number, total: number): (number | '...')[] {
+export function getPageNumbers(current: number, total: number): (number | '...')[] {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     const pages: (number | '...')[] = [1];
     if (current > 3) pages.push('...');

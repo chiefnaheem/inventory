@@ -14,7 +14,7 @@ interface ProductModalProps {
 
 type FormErrors = Partial<Record<'name' | 'category' | 'price' | 'quantity' | 'storeId', string>>;
 
-function validate(formData: { name: string; category: string; price: string; quantity: string; storeId: string }): FormErrors {
+export function validate(formData: { name: string; category: string; price: string; quantity: string; storeId: string }): FormErrors {
     const errors: FormErrors = {};
 
     if (!formData.name.trim()) errors.name = 'Name is required.';
