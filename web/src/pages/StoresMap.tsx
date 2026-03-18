@@ -32,7 +32,7 @@ export default function StoresMap() {
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                     {stores?.map((store) => (
-                        <StoreCard key={store.id} store={store as any} />
+                        <StoreCard key={store.id} store={store} />
                     ))}
                 </div>
             )}
