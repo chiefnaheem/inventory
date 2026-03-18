@@ -11,8 +11,11 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
         },
     });
     if (!res.ok) {
-        throw new Error(`API Error: ${res.statusText}`);
+        const body = await res.json().catch(() => null);
+        const message = body?.message || res.statusText || 'Something went wrong';
+        throw new Error(message);
     }
+    if (res.status === 204) return undefined as T;
     return res.json();
 }
 
