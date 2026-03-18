@@ -1,5 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
 import { IRoute } from './interfaces/route.interface';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -11,6 +14,7 @@ export class App {
         this.app = express();
         this.port = process.env.PORT || 8080;
 
+        this.initializeSecurityMiddlewares();
         this.initializeMiddlewares();
         this.initializeRoutes(routes);
         this.initializeErrorHandling();
@@ -26,11 +30,42 @@ export class App {
         return this.app;
     }
 
-    private initializeMiddlewares() {
-        this.app.use(cors());
-        this.app.use(express.json());
+    private initializeSecurityMiddlewares() {
+        
+        this.app.use(helmet());
 
-        // Health Check
+        
+        const limiter = rateLimit({
+            windowMs: 15 * 60 * 1000,
+            max: 100,
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: { status: 'error', message: 'Too many requests, please try again later.' },
+        });
+        this.app.use('/api', limiter)
+        const allowedOrigins = process.env.ALLOWED_ORIGINS
+            ? process.env.ALLOWED_ORIGINS.split(',')
+            : ['http://localhost:3000'];
+        this.app.use(cors({
+            origin: allowedOrigins,
+            methods: ['GET', 'POST', 'PUT', 'DELETE'],
+            allowedHeaders: ['Content-Type'],
+            credentials: false,
+        }));
+
+        // Request logging
+        this.app.use(morgan('combined'));
+    }
+
+    private initializeMiddlewares() {
+        // Body parsers with size limits to prevent payload attacks
+        this.app.use(express.json({ limit: '10kb' }));
+        this.app.use(express.urlencoded({ extended: false, limit: '10kb' }));
+
+        // Disable X-Powered-By (defense in depth, helmet also does this)
+        this.app.disable('x-powered-by');
+
+        // Health Check (no rate limit — used by Docker healthcheck)
         this.app.get('/health', (req, res) => {
             res.json({ status: 'ok', timestamp: new Date().toISOString() });
         });
