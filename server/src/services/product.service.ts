@@ -50,10 +50,18 @@ export class ProductService {
     }
 
     public async createProduct(data: any) {
+        const store = await this.prisma.store.findUnique({ where: { id: data.storeId } });
+        if (!store) {
+            throw new AppError('Store not found', 404);
+        }
         return this.prisma.product.create({ data });
     }
 
     public async updateProduct(id: string, data: any) {
+        const product = await this.prisma.product.findUnique({ where: { id } });
+        if (!product) {
+            throw new AppError('Product not found', 404);
+        }
         return this.prisma.product.update({
             where: { id },
             data
@@ -61,6 +69,10 @@ export class ProductService {
     }
 
     public async deleteProduct(id: string) {
+        const product = await this.prisma.product.findUnique({ where: { id } });
+        if (!product) {
+            throw new AppError('Product not found', 404);
+        }
         return this.prisma.product.delete({
             where: { id }
         });
