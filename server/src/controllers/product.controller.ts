@@ -6,8 +6,8 @@ export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
     public getProducts = catchAsync(async (req: Request, res: Response) => {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
         const search = req.query.search as string;
         const storeId = req.query.storeId as string;
 
