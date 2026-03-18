@@ -9,6 +9,7 @@ services:
     restart: on-failure
     environment:
       - PORT=8080
+      - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/tiny_inventory
     depends_on:
       db:

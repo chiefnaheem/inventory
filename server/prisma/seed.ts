@@ -1,8 +1,14 @@
+/// <reference types="node" />
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
+    if (process.env.NODE_ENV === 'production') {
+        console.log('Skipping seed in production environment.');
+        return;
+    }
+
     console.log('Seeding database...');
 
     await prisma.product.deleteMany();
@@ -42,8 +48,7 @@ async function main() {
 
 main()
     .catch((e) => {
-        console.error(e);
-        // process.exit(1);
+        console.error('Seeding failed:', e);
     })
     .finally(async () => {
         await prisma.$disconnect();
