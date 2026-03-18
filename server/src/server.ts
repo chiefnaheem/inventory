@@ -10,6 +10,15 @@ import { ProductController } from './controllers/product.controller';
 import { StoreRoute } from './routes/store.route';
 import { ProductRoute } from './routes/product.route';
 
+// 0. Validate required environment variables
+const requiredEnv = ['DATABASE_URL'];
+for (const key of requiredEnv) {
+    if (!process.env[key]) {
+        console.error(`Missing required environment variable: ${key}`);
+        process.exit(1);
+    }
+}
+
 // 1. Initialize Database Access
 const prisma = new PrismaClient();
 

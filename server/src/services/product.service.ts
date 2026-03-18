@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { AppError } from '../utils/AppError';
 
 export class ProductService {
@@ -8,7 +8,7 @@ export class ProductService {
         const { page, limit, search, storeId } = params;
         const skip = (page - 1) * limit;
 
-        const where: any = {};
+        const where: Prisma.ProductWhereInput = {};
         if (search) {
             where.name = { contains: search, mode: 'insensitive' };
         }
@@ -49,7 +49,7 @@ export class ProductService {
         return product;
     }
 
-    public async createProduct(data: any) {
+    public async createProduct(data: Prisma.ProductUncheckedCreateInput) {
         const store = await this.prisma.store.findUnique({ where: { id: data.storeId } });
         if (!store) {
             throw new AppError('Store not found', 404);
