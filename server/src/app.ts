@@ -22,7 +22,7 @@ export class App {
 
     public listen() {
         this.app.listen(this.port, () => {
-            console.log(`🚀 Server listening on port ${this.port}`);
+            console.log(`Server listening on port ${this.port}`);
         });
     }
 
@@ -31,10 +31,8 @@ export class App {
     }
 
     private initializeSecurityMiddlewares() {
-        
         this.app.use(helmet());
 
-        
         const limiter = rateLimit({
             windowMs: 15 * 60 * 1000,
             max: 100,
@@ -42,12 +40,12 @@ export class App {
             legacyHeaders: false,
             message: { status: 'error', message: 'Too many requests, please try again later.' },
         });
+        this.app.use('/api', limiter);
 
-        this.app.use('/api', limiter)
         const allowedOrigins = process.env.ALLOWED_ORIGINS
             ? process.env.ALLOWED_ORIGINS.split(',')
             : ['http://localhost:3000'];
-            
+
         this.app.use(cors({
             origin: allowedOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -55,19 +53,14 @@ export class App {
             credentials: false,
         }));
 
-        // Request logging
         this.app.use(morgan('combined'));
     }
 
     private initializeMiddlewares() {
-        // Body parsers with size limits to prevent payload attacks
         this.app.use(express.json({ limit: '10kb' }));
         this.app.use(express.urlencoded({ extended: false, limit: '10kb' }));
-
-        // Disable X-Powered-By (defense in depth, helmet also does this)
         this.app.disable('x-powered-by');
 
-        // Health Check (no rate limit — used by Docker healthcheck)
         this.app.get('/health', (req, res) => {
             res.json({ status: 'ok', timestamp: new Date().toISOString() });
         });
