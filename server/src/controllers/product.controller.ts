@@ -10,9 +10,18 @@ export class ProductController {
         const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
         const search = req.query.search as string;
         const storeId = req.query.storeId as string;
+        const category = req.query.category as string;
+        const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined;
+        const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined;
+        const inStock = req.query.inStock as string;
 
-        const result = await this.productService.getProducts({ page, limit, search, storeId });
+        const result = await this.productService.getProducts({ page, limit, search, storeId, category, minPrice, maxPrice, inStock });
         res.status(200).json(result);
+    });
+
+    public getCategories = catchAsync(async (req: Request, res: Response) => {
+        const categories = await this.productService.getCategories();
+        res.status(200).json(categories);
     });
 
     public getProductById = catchAsync(async (req: Request, res: Response) => {

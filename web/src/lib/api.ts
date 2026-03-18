@@ -34,6 +34,7 @@ export const api = {
         const query = new URLSearchParams(filtered).toString();
         return fetchApi<PaginatedResponse<Product>>(`/products?${query}`);
     },
+    getCategories: () => fetchApi<string[]>('/products/categories'),
     createProduct: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) =>
         fetchApi<Product>('/products', { method: 'POST', body: JSON.stringify(data) }),
     updateProduct: (id: string, data: Partial<Product>) =>

@@ -41,4 +41,8 @@ export interface ProductQueryParams {
     limit?: number;
     search?: string;
     storeId?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: string;
 }

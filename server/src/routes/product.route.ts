@@ -14,6 +14,7 @@ export class ProductRoute implements IRoute {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, this.productController.getProducts);
+        this.router.get(`${this.path}/categories`, this.productController.getCategories);
         this.router.get(`${this.path}/:id`, validate(IdParamSchema), this.productController.getProductById);
         this.router.post(`${this.path}`, validate(CreateProductSchema), this.productController.createProduct);
         this.router.put(`${this.path}/:id`, validate(UpdateProductSchema), this.productController.updateProduct);

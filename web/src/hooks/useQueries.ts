@@ -17,6 +17,13 @@ export const useStoreDetails = (id: string | undefined) => {
     });
 };
 
+export const useCategories = () => {
+    return useQuery<string[]>({
+        queryKey: ['categories'],
+        queryFn: api.getCategories,
+    });
+};
+
 export const useProducts = (params: ProductQueryParams) => {
     return useQuery<PaginatedResponse<Product>>({
         queryKey: ['products', params],
