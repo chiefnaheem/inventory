@@ -39,7 +39,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tiny_inventory
-    # No ports exposed to host — only accessible by other containers on the internal network
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

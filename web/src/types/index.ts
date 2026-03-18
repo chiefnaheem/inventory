@@ -4,10 +4,10 @@ export interface Store {
     location: string | null;
     createdAt: string;
     updatedAt: string;
-    // Computed properties
+
     totalProducts?: number;
     inventoryValue?: number;
-    // Relations
+
     products?: Product[];
 }
 
@@ -20,7 +20,7 @@ export interface Product {
     quantity: number;
     createdAt: string;
     updatedAt: string;
-    // Relations
+
     store?: Partial<Store>;
 }
 

@@ -60,12 +60,12 @@ export default function ProductsList() {
         timeoutRef.current = setTimeout(() => setDebouncedSearch(value), 300);
     };
 
-    // Reset to page 1 when search changes
+
     useEffect(() => {
         setPage(1);
     }, [debouncedSearch]);
 
-    // Cleanup debounce timeout on unmount
+
     useEffect(() => {
         return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
     }, []);
